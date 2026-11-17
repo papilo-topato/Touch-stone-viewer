@@ -14,6 +14,27 @@ SUPPORTED_EXTENSIONS = [f"s{i}p" for i in range(1, MAX_SUPPORTED_PORTS + 1)] + [
 
 st.set_page_config(page_title="Touchstone Viewer", layout="wide")
 
+st.html("""
+<style>
+html, body {
+    font-size: 14px !important;
+}
+.st-key-summary-table {
+    font-size: 13px !important;
+}
+.st-key-summary-table [role="gridcell"],
+.st-key-summary-table [role="columnheader"] {
+    font-size: 13px !important;
+}
+h3 {
+    font-size: 1.3rem !important;
+}
+h4 {
+    font-size: 1.1rem !important;
+}
+</style>
+""")
+
 
 def format_freq(hz):
     """Format frequency using the largest readable engineering unit."""
@@ -280,16 +301,17 @@ if st.session_state.networks:
         table_container = st.container()
 
         with table_container:
-            st.markdown(f"### {title} Summary (click a row to isolate its traces)")
-            selection_event = st.dataframe(
-                styled_summary,
-                width="stretch",
-                hide_index=True,
-                on_select="rerun",
-                selection_mode="single-row",
-                key=f"srf_summary_{'|'.join(df_summary['Network File'])}",
-                alt=f"{meas_type} parameters and notch summary for loaded networks",
-            )
+            st.markdown(f"#### {title} Summary (click a row to isolate its traces)")
+            with st.container(key="summary-table"):
+                selection_event = st.dataframe(
+                    styled_summary,
+                    width="stretch",
+                    hide_index=True,
+                    on_select="rerun",
+                    selection_mode="single-row",
+                    key=f"srf_summary_{'|'.join(df_summary['Network File'])}",
+                    alt=f"{meas_type} parameters and notch summary for loaded networks",
+                )
 
         selected_rows = selection_event.selection.rows
         highlighted_file = (
@@ -375,7 +397,7 @@ if st.session_state.networks:
     else:
         st.warning("No applicable S-parameter traces are available for this measurement.")
 
-    st.markdown("### Passivity Status")
+    st.markdown("#### Passivity Status")
     for name in st.session_state.networks:
         max_sv = st.session_state.max_sv.get(name, 1.0)
         is_passive = st.session_state.passivity_status.get(name, max_sv <= 1.0)
